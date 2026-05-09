@@ -1,0 +1,18 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+[tool.mutmut]
+paths_to_mutate = ["src/shipping_calculator.py"]
+tests_dir = "tests/"
+runner = "python3 -m pytest -q"
+do_not_mutate = ["src/__init__.py"]

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Etapa AI</title>
+  <style>
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #172033; line-height: 1.5; }
+    main { max-width: 940px; margin: 0 auto; padding: 40px 24px; }
+    a { color: #1f6feb; font-weight: 700; text-decoration: none; }
+    h1 { margin: 0 0 12px; }
+    .metric { display: inline-block; padding: 8px 12px; border-radius: 8px; background: #e7f7ef; color: #18794e; font-weight: 700; }
+    pre { background: #111827; color: #f9fafb; padding: 16px; border-radius: 8px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+    th, td { border: 1px solid #d7dce5; padding: 10px 12px; text-align: left; }
+    th { background: #f7f8fb; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="index.html">Inapoi la index</a>
+    <h1>Etapa 2 - Suita imbunatatita cu ChatGPT</h1>
+    <p><span class="metric">13 teste trecute, 100% coverage</span></p>
+    <p>In aceasta etapa se adauga teste inspirate de ChatGPT pentru ramurile omise in suita manuala.</p>
+
+    <h2>Comanda</h2>
+    <pre><code>python -m pytest tests/test_manual_basic.py tests/test_ai_generated.py --cov=shipping_calculator --cov-report=term-missing</code></pre>
+
+    <h2>Rezultat</h2>
+    <pre><code>tests/test_manual_basic.py ...                                           [ 23%]
+tests/test_ai_generated.py ..........                                    [100%]
+
+Name                         Stmts   Miss Branch BrPart  Cover   Missing
+------------------------------------------------------------------------
+src/__init__.py                  0      0      0      0   100%
+src/shipping_calculator.py      24      0     18      0   100%
+------------------------------------------------------------------------
+TOTAL                           24      0     18      0   100%
+
+13 passed</code></pre>
+
+    <h2>Ce a adaugat AI</h2>
+    <table>
+      <tr><th>Categorie</th><th>Exemple</th></tr>
+      <tr><td>Ramuri functionale</td><td>same_day, premium, rural</td></tr>
+      <tr><td>Combinatii</td><td>same_day + premium + rural</td></tr>
+      <tr><td>Validari</td><td>distanta zero, distanta negativa, tipuri necunoscute</td></tr>
+    </table>
+
+    <h2>Prompt folosit</h2>
+    <pre><code>Am urmatoarea functie Python pentru calculul costului de livrare:
+
+def calculate_shipping_cost(weight_kg, distance_km, delivery_type, customer_type, area_type):
+    # weight_kg si distance_km trebuie sa fie &gt; 0
+    # delivery_type: standard, express, same_day
+    # customer_type: regular, premium
+    # area_type: urban, rural
+    # base cost = 10 + weight_kg * 2 + distance_km * 0.5
+    # express adauga 50%, same_day adauga 100%
+    # premium aplica reducere 20%, rural adauga taxa fixa 15
+
+Te rog sa propui teste unitare pytest care cresc acoperirea codului. Include cazuri pentru:
+- same_day;
+- premium;
+- rural;
+- combinatii intre reguli;
+- inputuri numerice invalide;
+- tipuri necunoscute pentru delivery_type, customer_type si area_type.</code></pre>
+
+    <h2>Comparatie manual vs AI</h2>
+    <table>
+      <tr><th>Aspect</th><th>Suita manuala initiala</th><th>Suita imbunatatita cu AI</th></tr>
+      <tr><td>Numar teste</td><td>3</td><td>13 cazuri prin teste directe si parametrizate</td></tr>
+      <tr><td>Livrare standard</td><td>Da</td><td>Da</td></tr>
+      <tr><td>Livrare express</td><td>Da</td><td>Da</td></tr>
+      <tr><td>Livrare same_day</td><td>Nu</td><td>Da</td></tr>
+      <tr><td>Client premium</td><td>Nu</td><td>Da</td></tr>
+      <tr><td>Zona rurala</td><td>Nu</td><td>Da</td></tr>
+      <tr><td>Combinatii de reguli</td><td>Nu</td><td>Da</td></tr>
+      <tr><td>Inputuri numerice invalide</td><td>Partial</td><td>Da</td></tr>
+      <tr><td>Tipuri text invalide</td><td>Nu</td><td>Da</td></tr>
+    </table>
+
+    <h2>Interpretare</h2>
+    <p>Suita manuala initiala este suficienta pentru cazuri simple, dar nu testeaza majoritatea ramurilor. Testele inspirate de ChatGPT cresc acoperirea deoarece tintesc explicit deciziile omise: <code>same_day</code>, <code>premium</code>, <code>rural</code> si validarile de tip. Valorile asteptate au fost recalculate manual inainte de includere.</p>
+
+    <h2>Rolul IA in identificarea cazurilor greu de observat</h2>
+    <p>Pe langa cresterea coverage-ului, IA a fost folosita pentru a propune teste care verifica frontiere, combinatii de reguli si valori asteptate exacte. Aceste categorii sunt importante deoarece pot omori mutanti care nu sunt detectati de teste generale.</p>
+
+    <table>
+      <tr><th>Zona slaba</th><th>Exemplu de mutant</th><th>Test propus/rafinat</th></tr>
+      <tr><td>Valori de frontiera</td><td><code>&lt;= 0</code> devine <code>&lt; 0</code></td><td>Teste pentru input <code>0</code> si valori pozitive foarte mici.</td></tr>
+      <tr><td>Asertiuni prea generale</td><td>Multiplicatorul express este schimbat</td><td>Verificare cu rezultat numeric exact, nu doar comparatie.</td></tr>
+      <tr><td>Interactiuni intre reguli</td><td>Reducerea premium si taxa rurala sunt aplicate gresit</td><td>Test pentru combinatia <code>express</code> + <code>premium</code> + <code>rural</code>.</td></tr>
+      <tr><td>Precizia rezultatului</td><td>Rotunjirea finala este modificata</td><td>Test cu valori fractionare care forteaza rotunjirea la doua zecimale.</td></tr>
+    </table>
+  </main>
+</body>
+</html>
