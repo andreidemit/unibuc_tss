@@ -57,11 +57,12 @@ Rezultatele experimentului sunt disponibile ca fisiere HTML simple:
 - [reports/index.html](reports/index.html)
 - [reports/manual.html](reports/manual.html)
 - [reports/ai.html](reports/ai.html)
+- [reports/ai_usage.html](reports/ai_usage.html)
 - [reports/final.html](reports/final.html)
 - [reports/mutation.html](reports/mutation.html)
 - [reports/priority.html](reports/priority.html)
 
-Raportul privind folosirea tool-urilor AI este disponibil in [AI_USAGE_REPORT.md](AI_USAGE_REPORT.md).
+Raportul privind folosirea tool-urilor AI este disponibil in [AI_USAGE_REPORT.md](AI_USAGE_REPORT.md) si in format HTML la [reports/ai_usage.html](reports/ai_usage.html).
 
 ## Strategia de testare
 
@@ -83,7 +84,7 @@ Ramuri omise intentionat in etapa initiala:
 
 ## Imbunatatirea cu ChatGPT
 
-Promptul folosit si comparatia dintre suite sunt documentate in [AI_USAGE_REPORT.md](AI_USAGE_REPORT.md) si in [reports/ai.html](reports/ai.html).
+Promptul folosit si comparatia dintre suite sunt documentate in [AI_USAGE_REPORT.md](AI_USAGE_REPORT.md), [reports/ai_usage.html](reports/ai_usage.html) si [reports/ai.html](reports/ai.html).
 
 | Etapa | Ce demonstreaza |
 | --- | --- |

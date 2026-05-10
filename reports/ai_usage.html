@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Raport folosire tool-uri AI</title>
+  <style>
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #172033; line-height: 1.5; }
+    main { max-width: 1040px; margin: 0 auto; padding: 40px 24px; }
+    a { color: #1f6feb; font-weight: 700; text-decoration: none; }
+    h1 { margin: 0 0 12px; }
+    h2 { margin-top: 32px; }
+    p { color: #5d6678; }
+    pre { background: #111827; color: #f9fafb; padding: 16px; border-radius: 8px; overflow: auto; }
+    code { font-family: Menlo, Consolas, monospace; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+    th, td { border: 1px solid #d7dce5; padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { background: #f7f8fb; }
+    .metric { display: inline-block; padding: 8px 12px; border-radius: 8px; background: #e7f7ef; color: #18794e; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="index.html">Inapoi la index</a>
+    <h1>Raport privind folosirea tool-urilor AI</h1>
+    <p><span class="metric">ChatGPT - generare si imbunatatire teste unitare</span></p>
+
+    <h2>Context</h2>
+    <p>Proiectul are ca scop imbunatatirea unei suite de teste unitare pentru modulul <code>ShippingCostCalculator</code>. Modulul calculeaza costul de livrare in functie de greutate, distanta, tipul livrarii, tipul clientului si zona de livrare.</p>
+    <p>Tool-ul AI folosit a fost ChatGPT. Acesta a fost utilizat pentru generarea de idei de teste, identificarea unor cazuri limita si rafinarea suitei de teste dupa analiza rezultatelor de coverage si mutation testing.</p>
+
+    <h2>Tool AI utilizat</h2>
+    <table>
+      <tr><th>Tool</th><th>Scop</th><th>Data utilizarii</th></tr>
+      <tr><td>ChatGPT</td><td>Generare si imbunatatire teste unitare pytest</td><td>9 mai 2026</td></tr>
+    </table>
+    <p>Nu au fost preluate automat rezultate fara verificare. Valorile asteptate din teste au fost recalculate manual pe baza formulei din cod, iar testele au fost rulate cu <code>pytest</code>, <code>pytest-cov</code> si <code>mutmut</code>.</p>
+
+    <h2>Prompt 1: cresterea acoperirii codului</h2>
+    <pre><code>Am urmatoarea functie Python pentru calculul costului de livrare:
+
+def calculate_shipping_cost(weight_kg, distance_km, delivery_type, customer_type, area_type):
+    # weight_kg si distance_km trebuie sa fie &gt; 0
+    # delivery_type: standard, express, same_day
+    # customer_type: regular, premium
+    # area_type: urban, rural
+    # base cost = 10 + weight_kg * 2 + distance_km * 0.5
+    # express adauga 50%, same_day adauga 100%
+    # premium aplica reducere 20%, rural adauga taxa fixa 15
+
+Te rog sa propui teste unitare pytest care cresc acoperirea codului. Include cazuri pentru:
+- same_day;
+- premium;
+- rural;
+- combinatii intre reguli;
+- inputuri numerice invalide;
+- tipuri necunoscute pentru delivery_type, customer_type si area_type.</code></pre>
+
+    <h2>Raspuns AI sintetizat</h2>
+    <ul>
+      <li>teste pentru <code>same_day</code>, <code>premium</code> si <code>rural</code>;</li>
+      <li>teste pentru combinatii intre reguli;</li>
+      <li>teste parametrizate pentru valori numerice invalide;</li>
+      <li>teste pentru tipuri necunoscute de livrare, client si zona;</li>
+      <li>folosirea <code>pytest.raises</code> pentru validari.</li>
+    </ul>
+    <p>Aceste idei au fost transformate in testele din <code>tests/test_ai_generated.py</code>.</p>
+
+    <h2>Prompt 2: imbunatatirea testelor pe baza mutation testing</h2>
+    <pre><code>Am obtinut coverage bun, dar vreau teste mai puternice pentru mutation testing.
+Ce tipuri de mutanti ar putea supravietui daca testele sunt prea generale?
+
+Functia are:
+- validari de tip &lt;= 0;
+- multiplicatori pentru express si same_day;
+- reducere premium;
+- taxa rurala;
+- rotunjire la doua zecimale.
+
+Propune teste pytest care verifica frontiere, valori exacte, combinatii de reguli si rotunjire.</code></pre>
+
+    <h2>Raspuns AI sintetizat</h2>
+    <ul>
+      <li>mutanti de frontiera, de exemplu <code>&lt;= 0</code> schimbat in <code>&lt; 0</code>;</li>
+      <li>mutanti care modifica multiplicatorii;</li>
+      <li>mutanti care schimba ordinea aplicarii reducerii premium si a taxei rurale;</li>
+      <li>mutanti care elimina sau modifica rotunjirea;</li>
+      <li>mutanti care modifica mesajele de eroare.</li>
+    </ul>
+    <p>Aceste idei au fost transformate in testele din <code>tests/test_mutation_killers.py</code>.</p>
+
+    <h2>Comparatie intre suitele de teste</h2>
+    <table>
+      <tr><th>Aspect</th><th>Suita manuala initiala</th><th>Suita imbunatatita cu AI</th><th>Suita finala</th></tr>
+      <tr><td>Numar teste</td><td>3</td><td>13</td><td>25</td></tr>
+      <tr><td>Coverage pe <code>shipping_calculator.py</code></td><td>67%</td><td>100%</td><td>100%</td></tr>
+      <tr><td>Teste pentru <code>same_day</code></td><td>Nu</td><td>Da</td><td>Da</td></tr>
+      <tr><td>Teste pentru <code>premium</code></td><td>Nu</td><td>Da</td><td>Da</td></tr>
+      <tr><td>Teste pentru <code>rural</code></td><td>Nu</td><td>Da</td><td>Da</td></tr>
+      <tr><td>Teste pentru inputuri invalide</td><td>Partial</td><td>Da</td><td>Da</td></tr>
+      <tr><td>Teste pentru valori de frontiera</td><td>Nu</td><td>Partial</td><td>Da</td></tr>
+      <tr><td>Teste pentru mutation testing</td><td>Nu</td><td>Partial</td><td>Da</td></tr>
+      <tr><td>Mutanti omorati</td><td>Nu a fost scopul suitei initiale</td><td>Imbunatatire partiala</td><td>43/43</td></tr>
+    </table>
+
+    <h2>Exemple de cazuri greu de prins manual</h2>
+    <table>
+      <tr><th>Mutatie posibila</th><th>De ce poate scapa</th><th>Test adaugat</th></tr>
+      <tr><td><code>weight_kg &lt;= 0</code> devine <code>weight_kg &lt; 0</code></td><td>Testul cu <code>-1</code> ramane valid; doar frontiera <code>0</code> expune diferenta.</td><td>teste pentru <code>0</code> si valori pozitive foarte mici</td></tr>
+      <tr><td><code>cost *= 1.5</code> este modificat</td><td>Un test care verifica doar ca express este mai scump nu verifica formula exacta.</td><td><code>test_express_multiplier_is_exactly_one_point_five</code></td></tr>
+      <tr><td>Regulile premium si rural sunt aplicate in alta ordine</td><td>Testele separate pot trece, dar combinatia produce alt rezultat.</td><td><code>test_rural_fee_is_added_after_premium_discount</code></td></tr>
+      <tr><td><code>round(cost, 2)</code> este eliminat</td><td>Valorile intregi nu arata problema.</td><td><code>test_rounding_to_two_decimals_is_stable</code></td></tr>
+    </table>
+
+    <h2>Interpretare</h2>
+    <p>Folosirea ChatGPT a fost utila in doua etape. Mai intai, a extins suita initiala cu teste pentru ramuri omise, crescand coverage-ul de la 67% la 100%. Apoi, a ajutat la identificarea unor categorii de mutanti greu de observat prin teste manuale simple: mutanti de frontiera, mutanti ai multiplicatorilor si mutanti ai rotunjirii.</p>
+    <p>Rezultatele generate de AI nu au fost acceptate direct. Fiecare test a fost verificat prin rulare, iar valorile asteptate au fost recalculate manual. In final, suita a obtinut 100% coverage pe modulul testat si 43/43 mutanti omorati.</p>
+
+    <h2>Limitari</h2>
+    <p>ChatGPT poate propune teste incomplete sau valori asteptate gresite daca promptul nu contine toate regulile de business. De aceea, raspunsurile au fost tratate ca sugestii, nu ca sursa finala de adevar. Validarea finala a fost facuta prin <code>pytest</code>, <code>pytest-cov</code> si <code>mutmut</code>.</p>
+
+    <h2>Referinte</h2>
+    <table>
+      <tr><th>#</th><th>Referinta</th></tr>
+      <tr><td>[1]</td><td>OpenAI, ChatGPT, https://chatgpt.com/, Data generarii: 9 mai 2026.</td></tr>
+      <tr><td>[2]</td><td>pytest, Documentation, https://docs.pytest.org/, Data ultimei accesari: 9 mai 2026.</td></tr>
+      <tr><td>[3]</td><td>Coverage.py, Documentation, https://coverage.readthedocs.io/, Data ultimei accesari: 9 mai 2026.</td></tr>
+      <tr><td>[4]</td><td>Mutmut, Documentation, https://mutmut.readthedocs.io/, Data ultimei accesari: 9 mai 2026.</td></tr>
+    </table>
+  </main>
+</body>
+</html>
