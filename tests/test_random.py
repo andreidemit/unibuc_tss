@@ -17,7 +17,7 @@ VALID_RANDOM_CASES = 500
 INVALID_RANDOM_CASES = 120
 
 
-def _valid_cases():
+def _generate_valid_random_cases():
     generator = random.Random(RANDOM_SEED)
     cases = []
     for _ in range(VALID_RANDOM_CASES):
@@ -33,7 +33,7 @@ def _valid_cases():
     return cases
 
 
-def _invalid_cases():
+def _generate_invalid_random_cases():
     generator = random.Random(RANDOM_SEED + 1)
     invalid_delivery_types = ("overnight", "economy", "", "STANDARD")
     invalid_customer_types = ("gold", "vip", "", "PREMIUM")
@@ -68,7 +68,7 @@ def _invalid_cases():
 
 @pytest.mark.parametrize(
     ("weight_kg", "distance_km", "delivery_type", "customer_type", "area_type"),
-    _valid_cases(),
+    _generate_valid_random_cases(),
 )
 def test_random_valid_inputs_match_independent_oracle(
     weight_kg,
@@ -99,7 +99,7 @@ def test_random_valid_inputs_match_independent_oracle(
 
 @pytest.mark.parametrize(
     ("weight_kg", "distance_km", "delivery_type", "customer_type", "area_type"),
-    _invalid_cases(),
+    _generate_invalid_random_cases(),
 )
 def test_random_invalid_inputs_match_independent_validation_oracle(
     weight_kg,

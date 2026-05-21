@@ -175,14 +175,14 @@
         </tr>
         <tr>
           <td>AI</td>
-          <td><code>python -m pytest tests/test_manual_basic.py tests/test_ai_generated.py --cov=shipping_calculator --cov-report=term-missing</code></td>
+          <td><code>python -m pytest tests/test_manual_basic.py tests/test_ai_improved_cases.py --cov=shipping_calculator --cov-report=term-missing</code></td>
           <td>13</td>
           <td>100%</td>
           <td>ChatGPT acopera ramurile omise.</td>
         </tr>
         <tr>
           <td>Final</td>
-          <td><code>python -m pytest tests/test_manual_basic.py tests/test_ai_generated.py tests/test_mutation_killers.py --cov=shipping_calculator --cov-report=term-missing</code></td>
+          <td><code>python -m pytest tests/test_manual_basic.py tests/test_ai_improved_cases.py tests/test_mutation_focused_cases.py --cov=shipping_calculator --cov-report=term-missing</code></td>
           <td>25</td>
           <td>100%</td>
           <td>Testele finale sunt orientate spre mutation testing.</td>

@@ -47,7 +47,7 @@ ChatGPT a propus:
 - teste pentru tipuri necunoscute de livrare, client si zona;
 - folosirea `pytest.raises` pentru validari.
 
-Aceste idei au fost transformate in testele din `tests/test_ai_generated.py`.
+Aceste idei au fost transformate in testele din `tests/test_ai_improved_cases.py`.
 
 ## Prompt 2: imbunatatirea testelor pe baza mutation testing
 
@@ -75,7 +75,7 @@ ChatGPT a sugerat ca testele generale pot rata:
 - mutanti care elimina sau modifica rotunjirea;
 - mutanti care modifica mesajele de eroare.
 
-Aceste idei au fost transformate in testele din `tests/test_mutation_killers.py`.
+Aceste idei au fost transformate in testele din `tests/test_mutation_focused_cases.py`.
 
 ## Comparatie intre suitele de teste
 

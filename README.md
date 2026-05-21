@@ -41,11 +41,11 @@ Acest modul este echivalentul practic al exemplului `linear_search` din cerinta 
 src/
   shipping_calculator.py   # subject under test
   oracle.py                # oracol independent pentru random testing
-  test_prioritizer.py      # identificare puncte critice si prioritizare teste
+  risk_prioritizer.py      # identificare puncte critice si prioritizare teste
 tests/
   test_manual_basic.py
-  test_ai_generated.py
-  test_mutation_killers.py
+  test_ai_improved_cases.py
+  test_mutation_focused_cases.py
   test_random.py
   test_risk_prioritizer.py
 reports/
@@ -105,7 +105,7 @@ Testele black-box verifica functia prin inputuri si outputuri asteptate, fara a 
 | input numeric invalid | greutate sau distanta `<= 0` |
 | input textual invalid | `overnight`, `gold`, `remote` |
 
-Teste relevante: `tests/test_manual_basic.py`, `tests/test_ai_generated.py`, `tests/test_random.py`.
+Teste relevante: `tests/test_manual_basic.py`, `tests/test_ai_improved_cases.py`, `tests/test_random.py`.
 
 ## White-box testing
 
@@ -122,7 +122,7 @@ Testele white-box urmaresc ramurile din cod:
 - ramura `rural`;
 - rotunjirea rezultatului final.
 
-Teste relevante: `tests/test_ai_generated.py` si `tests/test_mutation_killers.py`.
+Teste relevante: `tests/test_ai_improved_cases.py` si `tests/test_mutation_focused_cases.py`.
 
 ## Random testing si oracol independent
 
@@ -166,7 +166,7 @@ scripts/run_mutation.sh
 
 ## Prioritizarea automata a testelor
 
-Sistemul din `src/test_prioritizer.py` foloseste `ast` pentru a identifica puncte critice:
+Sistemul din `src/risk_prioritizer.py` foloseste `ast` pentru a identifica puncte critice:
 
 - validari;
 - formule;

@@ -24,14 +24,14 @@
     <p>Etapa finala pastreaza testele AI si adauga teste mai stricte pentru valori de frontiera, rezultate exacte si mesaje de eroare.</p>
 
     <h2>Comenzi</h2>
-    <pre><code>python -m pytest tests/test_manual_basic.py tests/test_ai_generated.py tests/test_mutation_killers.py --cov=shipping_calculator --cov-report=term-missing
+    <pre><code>python -m pytest tests/test_manual_basic.py tests/test_ai_improved_cases.py tests/test_mutation_focused_cases.py --cov=shipping_calculator --cov-report=term-missing
 mutmut run --max-children 1
 mutmut results</code></pre>
 
     <h2>Rezultat pytest</h2>
     <pre><code>tests/test_manual_basic.py ...                                           [ 12%]
-tests/test_ai_generated.py ..........                                    [ 52%]
-tests/test_mutation_killers.py ............                              [100%]
+tests/test_ai_improved_cases.py ..........                                    [ 52%]
+tests/test_mutation_focused_cases.py ............                              [100%]
 
 Name                         Stmts   Miss Branch BrPart  Cover   Missing
 ------------------------------------------------------------------------
