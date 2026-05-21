@@ -39,7 +39,7 @@ def calculate_shipping_cost(
     cost = 10 + weight_kg * 2 + distance_km * 0.5
 
     if delivery_type == "express":
-        cost *= 1.5
+        cost *= 1.4
     elif delivery_type == "same_day":
         cost *= 2
 
