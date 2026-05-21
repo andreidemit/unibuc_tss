@@ -1,4 +1,5 @@
 .coverage
+.DS_Store
 .mutmut-cache/
 .pytest_cache/
 .venv/
@@ -6,4 +7,5 @@ __pycache__/
 *.py[cod]
 htmlcov/
 mutants/
+reports/coverage-*.json
 reports/priority.md

@@ -1,12 +1,26 @@
 # T10 - Imbunatatirea testarii unitare cu IA
 
-Proiect demonstrativ pentru tema T10: folosirea unui tool AI pentru imbunatatirea unei suite de teste unitare.
+[![TSS Tests](https://github.com/andreidemit/unibuc_tss/actions/workflows/ci.yml/badge.svg)](https://github.com/andreidemit/unibuc_tss/actions/workflows/ci.yml)
 
-Modulul testat este `ShippingCostCalculator`, implementat prin functia:
+Proiect pentru tema T10: imbunatatirea unei suite de teste unitare existente cu ajutorul IA, masurand efectul prin coverage, mutation testing si prioritizarea automata a testelor.
+
+Badge-ul de mai sus indica starea pipeline-ului GitHub Actions. Verde inseamna ca instalarea, testele, coverage-ul si generarea artefactelor au trecut pe ultimul commit rulat in GitHub.
+
+## Subject Under Test
+
+Modulul testat este `src/shipping_calculator.py`, prin functia:
 
 ```python
 calculate_shipping_cost(weight_kg, distance_km, delivery_type, customer_type, area_type) -> float
 ```
+
+Acest modul este echivalentul practic al exemplului `linear_search` din cerinta deoarece are:
+
+- inputuri controlabile: greutate, distanta, tip livrare, tip client, tip zona;
+- output numeric verificabil: costul final de livrare;
+- validari clare pentru input invalid;
+- ramuri logice testabile pentru `express`, `same_day`, `premium` si `rural`;
+- comportament suficient de simplu pentru evaluare academica.
 
 ## Reguli de calcul
 
@@ -17,11 +31,32 @@ calculate_shipping_cost(weight_kg, distance_km, delivery_type, customer_type, ar
 - Costul de baza este `10 + weight_kg * 2 + distance_km * 0.5`.
 - `express` adauga 50%.
 - `same_day` adauga 100%.
-- `premium` aplica o reducere de 20%.
-- `rural` adauga o taxa fixa de 15.
+- `premium` aplica reducere de 20%.
+- `rural` adauga taxa fixa de 15.
 - Rezultatul este rotunjit la 2 zecimale.
 
-## Instalare
+## Structura proiectului
+
+```text
+src/
+  shipping_calculator.py   # subject under test
+  oracle.py                # oracol independent pentru random testing
+  test_prioritizer.py      # identificare puncte critice si prioritizare teste
+tests/
+  test_manual_basic.py
+  test_ai_generated.py
+  test_mutation_killers.py
+  test_random.py
+  test_risk_prioritizer.py
+reports/
+  *.html
+  requirements_matrix.md
+  manual_vs_random.md
+  presentation_checklist.md
+.github/workflows/ci.yml
+```
+
+## Instalare locala
 
 ```bash
 python3 -m venv .venv
@@ -29,30 +64,146 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-## Rulare demonstrativa
+## Rulare teste
 
 ```bash
-python -m pytest tests/test_manual_basic.py --cov=shipping_calculator --cov-report=term-missing
+python -m pytest -q
 ```
 
-In aceasta etapa ruleaza doar testele manuale de baza. Testele trec, dar coverage-ul este incomplet.
-
-Pentru etapa AI:
+Sau:
 
 ```bash
-python -m pytest tests/test_manual_basic.py tests/test_ai_generated.py --cov=shipping_calculator --cov-report=term-missing
+scripts/run_tests.sh
 ```
 
-Pentru etapa finala:
+## Coverage
+
+Comanda principala folosita local si in CI:
 
 ```bash
-python -m pytest tests/test_manual_basic.py tests/test_ai_generated.py tests/test_mutation_killers.py --cov=shipping_calculator --cov-report=term-missing
+python -m pytest --cov=src --cov-branch --cov-report=term-missing --cov-report=html --cov-fail-under=90
+```
+
+Aceasta masoara statement coverage si branch coverage. Pragul minim este 90%, configurat si in `pyproject.toml`.
+
+Rezultatul HTML este generat in:
+
+```text
+htmlcov/index.html
+```
+
+## Black-box testing
+
+Testele black-box verifica functia prin inputuri si outputuri asteptate, fara a depinde de implementarea interna.
+
+| Clasa / partitie | Exemple |
+| --- | --- |
+| livrare valida standard | `standard`, `regular`, `urban` |
+| tipuri de livrare valide | `standard`, `express`, `same_day` |
+| tipuri client valide | `regular`, `premium` |
+| tipuri zona valide | `urban`, `rural` |
+| input numeric invalid | greutate sau distanta `<= 0` |
+| input textual invalid | `overnight`, `gold`, `remote` |
+
+Teste relevante: `tests/test_manual_basic.py`, `tests/test_ai_generated.py`, `tests/test_random.py`.
+
+## White-box testing
+
+Testele white-box urmaresc ramurile din cod:
+
+- validarea greutatii;
+- validarea distantei;
+- validarea tipului de livrare;
+- validarea tipului de client;
+- validarea tipului de zona;
+- ramura `express`;
+- ramura `same_day`;
+- ramura `premium`;
+- ramura `rural`;
+- rotunjirea rezultatului final.
+
+Teste relevante: `tests/test_ai_generated.py` si `tests/test_mutation_killers.py`.
+
+## Random testing si oracol independent
+
+Random testing-ul este in `tests/test_random.py` si foloseste seed fix:
+
+```python
+RANDOM_SEED = 42
+VALID_RANDOM_CASES = 500
+INVALID_RANDOM_CASES = 120
+```
+
+Oracolul independent este `src/oracle.py`. Testele random nu folosesc functia testata ca oracol; ele compara rezultatul din `calculate_shipping_cost` cu rezultatul calculat separat de `expected_shipping_cost`.
+
+Rulare doar random testing:
+
+```bash
+python -m pytest tests/test_random.py -q
+```
+
+## Mutation testing
+
+Tool-ul folosit este `mutmut`. Comanda stabila pentru Python 3.14/macOS este:
+
+```bash
 mutmut run --max-children 1
 mutmut results
 python scripts/generate_mutation_report.py
 ```
 
-Rezultatele experimentului sunt disponibile ca fisiere HTML simple:
+Raportul HTML este generat in:
+
+```text
+reports/mutation.html
+```
+
+Pentru rulare rapida:
+
+```bash
+scripts/run_mutation.sh
+```
+
+## Prioritizarea automata a testelor
+
+Sistemul din `src/test_prioritizer.py` foloseste `ast` pentru a identifica puncte critice:
+
+- validari;
+- formule;
+- ramuri de decizie;
+- rotunjirea rezultatului.
+
+Rulare:
+
+```bash
+python scripts/prioritize_tests.py
+```
+
+Rezultatul este folosit ca dovada pentru cerinta T10 privind identificarea automata a punctelor critice si prioritizarea testelor.
+
+## CI/CD
+
+Pipeline-ul este definit in `.github/workflows/ci.yml` si ruleaza la:
+
+- `push`;
+- `pull_request`.
+
+Pipeline-ul executa:
+
+- checkout;
+- setup Python 3.12;
+- instalare dependente;
+- teste cu statement si branch coverage;
+- fail daca coverage < 90%;
+- generare `htmlcov/`;
+- upload artifact pentru coverage HTML;
+- rulare mutation testing cu `continue-on-error: true`;
+- generare raport mutation;
+- upload artifact pentru `reports/` si `mutants/`.
+
+Mutation testing-ul este pas separat deoarece poate dura mai mult si poate fi sensibil la platforma.
+
+## Rapoarte
 
 - [reports/index.html](reports/index.html)
 - [reports/manual.html](reports/manual.html)
@@ -61,91 +212,19 @@ Rezultatele experimentului sunt disponibile ca fisiere HTML simple:
 - [reports/final.html](reports/final.html)
 - [reports/mutation.html](reports/mutation.html)
 - [reports/priority.html](reports/priority.html)
+- [reports/requirements_matrix.md](reports/requirements_matrix.md)
+- [reports/manual_vs_random.md](reports/manual_vs_random.md)
+- [reports/presentation_checklist.md](reports/presentation_checklist.md)
 
-Raportul privind folosirea tool-urilor AI este disponibil in [AI_USAGE_REPORT.md](AI_USAGE_REPORT.md) si in format HTML la [reports/ai_usage.html](reports/ai_usage.html).
+Raportul privind folosirea tool-urilor AI este disponibil in `AI_USAGE_REPORT.md` si `reports/ai_usage.html`.
 
-## Strategia de testare
+## Matrice cerinta - dovada
 
-Etapa initiala foloseste o suita manuala minima:
+Matricea completa este in [reports/requirements_matrix.md](reports/requirements_matrix.md).
 
-| Caz | Scop |
-| --- | --- |
-| livrare standard valida | verifica formula de baza |
-| greutate negativa | verifica o validare |
-| livrare express | verifica o ramura de decizie |
+## Dovezi necesare pentru prezentare
 
-Ramuri omise intentionat in etapa initiala:
-
-- `same_day`;
-- `premium`;
-- `rural`;
-- validarea distantei;
-- validarea tipurilor necunoscute.
-
-## Imbunatatirea cu ChatGPT
-
-Promptul folosit si comparatia dintre suite sunt documentate in [AI_USAGE_REPORT.md](AI_USAGE_REPORT.md), [reports/ai_usage.html](reports/ai_usage.html) si [reports/ai.html](reports/ai.html).
-
-| Etapa | Ce demonstreaza |
-| --- | --- |
-| Manual | Suita manuala minima, coverage incomplet |
-| AI | Teste inspirate de ChatGPT pentru ramuri si validari omise |
-| Final | Teste suplimentare orientate spre mutation testing |
-
-Pentru raport se vor include capturi de ecran cu rezultatele comenzilor:
-
-```bash
-python -m pytest tests/test_manual_basic.py --cov=shipping_calculator --cov-report=term-missing
-python -m pytest tests/test_manual_basic.py tests/test_ai_generated.py --cov=shipping_calculator --cov-report=term-missing
-python -m pytest tests/test_manual_basic.py tests/test_ai_generated.py tests/test_mutation_killers.py --cov=shipping_calculator --cov-report=term-missing
-mutmut run --max-children 1
-mutmut results
-python scripts/generate_mutation_report.py
-```
-
-## Sistem automat de prioritizare
-
-Proiectul include si un sistem care identifica automat punctele critice ale codului si prioritizeaza testele:
-
-```bash
-python scripts/prioritize_tests.py
-```
-
-Sistemul din `src/test_prioritizer.py` foloseste `ast` pentru a detecta:
-
-- validarile de input;
-- formula de calcul;
-- ramurile de decizie;
-- rotunjirea rezultatului final.
-
-Fiecare punct critic primeste un scor de risc, apoi testele sunt ordonate dupa punctele critice pe care le acopera. Rezultatul este prezentat in [reports/priority.html](reports/priority.html).
-
-## Teste finale pentru mutanti
-
-Etapa finala adauga teste orientate spre mutanti:
-
-| Test | Mutatie vizata |
-| --- | --- |
-| valori pozitive foarte mici | schimbari in comparatiile `<= 0` |
-| multiplicator express exact | schimbari ale multiplicatorului `1.5` |
-| multiplicator same_day exact | schimbari ale multiplicatorului `2` |
-| premium dupa multiplicator | schimbarea ordinii de aplicare a regulilor |
-| rural dupa discount | schimbarea ordinii taxei rurale |
-| rotunjire la 2 zecimale | eliminarea sau modificarea `round(..., 2)` |
-| mesaje exacte pentru erori | mutanti care modifica mesajele `ValueError` |
-
-## Cazuri greu de prins manual
-
-Un rezultat important al proiectului este diferenta dintre coverage si calitatea asertiunilor. O suita poate executa codul, dar poate rata mutanti daca testele sunt prea generale.
-
-Exemple tratate in suita finala:
-
-| Problema | De ce poate scapa | Test care o detecteaza |
-| --- | --- | --- |
-| `weight_kg <= 0` devine `weight_kg < 0` | Un test cu `-1` nu verifica frontiera `0` | teste pentru `0` si valori pozitive foarte mici |
-| multiplicatorul express este modificat | O comparatie de tip “mai scump decat standard” nu verifica formula exacta | `test_express_multiplier_is_exactly_one_point_five` |
-| premium si rural interactioneaza gresit | Testele separate nu verifica ordinea aplicarii regulilor | `test_rural_fee_is_added_after_premium_discount` |
-| rotunjirea este eliminata | Valorile intregi nu expun problema | `test_rounding_to_two_decimals_is_stable` |
+Checklist-ul complet este in [reports/presentation_checklist.md](reports/presentation_checklist.md).
 
 ## Referinte
 

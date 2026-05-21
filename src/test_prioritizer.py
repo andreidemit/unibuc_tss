@@ -119,6 +119,8 @@ def _suite_for_path(path: Path) -> str:
         return "manual"
     if "ai" in path.name:
         return "ai"
+    if "random" in path.name:
+        return "random"
     if "mutation" in path.name:
         return "final"
     return "other"

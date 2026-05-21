@@ -10,9 +10,11 @@ source = ["src"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
+fail_under = 90
 
 [tool.mutmut]
 paths_to_mutate = ["src/shipping_calculator.py"]
+also_copy = ["src/oracle.py", "src/test_prioritizer.py"]
 tests_dir = "tests/"
 runner = "python3 -m pytest -q"
 do_not_mutate = ["src/__init__.py"]

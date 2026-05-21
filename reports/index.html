@@ -141,6 +141,12 @@
         <a href="mutation.html">Deschide raportul mutmut</a>
       </section>
       <section class="card">
+        <h2>Random</h2>
+        <span class="metric">621 teste</span>
+        <p>Teste aleatoare reproductibile cu seed 42 si oracol independent.</p>
+        <a href="manual_vs_random.md">Deschide comparatia manual vs random</a>
+      </section>
+      <section class="card">
         <h2>4. Prioritizare</h2>
         <span class="metric">11 puncte</span>
         <p>Sistem AST pentru puncte critice si ordonarea testelor dupa risc.</p>
@@ -182,9 +188,16 @@
           <td>Testele finale sunt orientate spre mutation testing.</td>
         </tr>
         <tr>
+          <td>Random</td>
+          <td><code>python -m pytest tests/test_random.py --cov=shipping_calculator --cov-branch --cov-report=term-missing --cov-fail-under=0</code></td>
+          <td>621</td>
+          <td>100%</td>
+          <td>Teste generate cu seed fix si verificate prin oracol independent.</td>
+        </tr>
+        <tr>
           <td>Prioritizare</td>
           <td><code>python scripts/prioritize_tests.py</code></td>
-          <td>16 teste analizate</td>
+          <td>19 teste analizate</td>
           <td>11 puncte critice</td>
           <td>Identifica automat riscul si ordoneaza testele.</td>
         </tr>

@@ -1,0 +1,54 @@
+name: TSS Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run tests with statement and branch coverage
+        run: |
+          python -m pytest --cov=src --cov-branch --cov-report=term-missing --cov-report=html --cov-fail-under=90
+
+      - name: Upload coverage HTML artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov/
+
+      - name: Generate prioritization report
+        run: |
+          mkdir -p reports
+          python scripts/prioritize_tests.py > reports/priority.md
+
+      - name: Run mutation testing
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          mutmut run --max-children 1 || true
+          mutmut results > reports/mutmut-results.txt || true
+          python scripts/generate_mutation_report.py
+
+      - name: Upload mutation and project reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: tss-reports
+          path: |
+            reports/
+            mutants/
