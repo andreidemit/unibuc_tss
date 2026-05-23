@@ -124,8 +124,8 @@
       </section>
       <section class="card">
         <h2>Raport AI</h2>
-        <span class="metric">2 prompturi</span>
-        <p>Prompturi, raspunsuri sintetizate, comparatie si interpretare.</p>
+        <span class="metric">3 prompturi</span>
+        <p>Prompturi, raspunsuri sintetizate, validare umana si interpretare.</p>
         <a href="ai_usage.html">Deschide raportul AI complet</a>
       </section>
       <section class="card">
@@ -141,6 +141,12 @@
         <a href="mutation.html">Deschide raportul mutmut</a>
       </section>
       <section class="card">
+        <h2>Mutanti & teste</h2>
+        <span class="metric">43 mapari</span>
+        <p>Mapping intre mutantii generati si testele focalizate care ii acopera.</p>
+        <a href="mutation_focused_test_mapping.md">Deschide mapping-ul mutantilor</a>
+      </section>
+      <section class="card">
         <h2>Random</h2>
         <span class="metric">621 teste</span>
         <p>Teste aleatoare reproductibile cu seed 42 si oracol independent.</p>
@@ -153,6 +159,81 @@
         <a href="priority.html">Deschide raportul de prioritizare</a>
       </section>
     </div>
+
+    <h2>Categorisirea testelor</h2>
+    <p>Numerele de mai jos folosesc cazurile pytest colectate. Unele teste apar in mai multe categorii, deoarece acelasi caz poate verifica atat comportamentul functional, cat si o frontiera sau un mutant.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Tip de testare</th>
+          <th>Cate teste</th>
+          <th>Teste / fisiere relevante</th>
+          <th>Ce demonstreaza</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Functionala / black-box</td>
+          <td>13 deterministe + 500 random valide</td>
+          <td><code>test_manual_basic.py</code>, <code>test_ai_improved_cases.py</code>, <code>test_random_valid_inputs_match_independent_oracle</code></td>
+          <td>Verifica rezultatul calculului pe baza specificatiei: standard, express, same_day, premium, rural si combinatii.</td>
+        </tr>
+        <tr>
+          <td>Structurala / white-box</td>
+          <td>12 cazuri pentru SUT + 4 pentru analizorul de risc</td>
+          <td><code>test_mutation_focused_cases.py</code>, <code>test_risk_prioritizer.py</code></td>
+          <td>Vizeaza ramuri, conditii, ordinea regulilor, rotunjirea si punctele critice detectate in cod.</td>
+        </tr>
+        <tr>
+          <td>Valori de frontiera</td>
+          <td>7 cazuri deterministe</td>
+          <td><code>test_non_positive_numeric_inputs_are_rejected</code>, <code>test_positive_boundary_values_are_accepted</code>, <code>test_validation_error_messages_are_exact</code></td>
+          <td>Testeaza frontiera lui 0 pentru greutate si distanta: 0 invalid, valori imediat pozitive valide.</td>
+        </tr>
+        <tr>
+          <td>Partitionare de echivalenta</td>
+          <td>13 deterministe + 500 random valide</td>
+          <td><code>standard</code>/<code>express</code>/<code>same_day</code>, <code>regular</code>/<code>premium</code>, <code>urban</code>/<code>rural</code></td>
+          <td>Acopera clasele valide si invalide pentru tip livrare, tip client si tip zona.</td>
+        </tr>
+        <tr>
+          <td>Cazuri exceptionale / validare</td>
+          <td>12 deterministe + 120 random invalide</td>
+          <td><code>test_negative_weight_is_rejected</code>, <code>test_unknown_types_are_rejected</code>, <code>test_random_invalid_inputs_match_independent_validation_oracle</code></td>
+          <td>Confirma ca inputurile invalide produc <code>ValueError</code> si mesaje corecte.</td>
+        </tr>
+        <tr>
+          <td>Random testing reproductibil</td>
+          <td>621 cazuri</td>
+          <td><code>test_random.py</code>, seed fix <code>42</code></td>
+          <td>Genereaza automat 500 cazuri valide, 120 invalide si un test separat pentru oracol.</td>
+        </tr>
+        <tr>
+          <td>Oracol independent</td>
+          <td>621 cazuri verificate</td>
+          <td><code>src/oracle.py</code>, <code>test_random.py</code></td>
+          <td>Compara SUT cu o implementare separata a regulilor, fara a folosi functia testata ca sursa de adevar.</td>
+        </tr>
+        <tr>
+          <td>Mutation-focused</td>
+          <td>12 cazuri</td>
+          <td><code>test_express_multiplier_is_exactly_one_point_five</code>, <code>test_same_day_multiplier_is_exactly_double</code>, <code>test_rural_fee_is_added_after_premium_discount</code></td>
+          <td>Include asertiuni stricte care omoara mutanti pentru comparatii, multiplicatori, reduceri, taxe si mesaje.</td>
+        </tr>
+        <tr>
+          <td>Rotunjire si precizie numerica</td>
+          <td>1 caz determinist + cazuri random cu zecimale</td>
+          <td><code>test_rounding_to_two_decimals_is_stable</code>, <code>test_random_valid_inputs_match_independent_oracle</code></td>
+          <td>Detecteaza erori in <code>round(cost, 2)</code> si in calculele cu valori fractionare.</td>
+        </tr>
+        <tr>
+          <td>Prioritizare automata a testelor</td>
+          <td>4 cazuri</td>
+          <td><code>test_risk_prioritizer.py</code></td>
+          <td>Verifica sistemul care identifica puncte critice in cod si ordoneaza testele dupa risc.</td>
+        </tr>
+      </tbody>
+    </table>
 
     <h2>Rezumat comparativ</h2>
     <table>

@@ -4,15 +4,23 @@
 
 Proiectul are ca scop imbunatatirea unei suite de teste unitare pentru modulul `ShippingCostCalculator`. Modulul calculeaza costul de livrare in functie de greutate, distanta, tipul livrarii, tipul clientului si zona de livrare.
 
-Tool-ul AI folosit a fost ChatGPT. Acesta a fost utilizat pentru generarea de idei de teste, identificarea unor cazuri limita si rafinarea suitei de teste dupa analiza rezultatelor de coverage si mutation testing.
+Tool-ul AI folosit a fost ChatGPT. Acesta a fost utilizat ca instrument de asistare pentru:
+
+- identificarea ramurilor netestate;
+- propunerea unor cazuri de test pentru cresterea coverage-ului;
+- identificarea unor mutanti care pot supravietui unor teste prea generale;
+- structurarea ideii de prioritizare a testelor dupa puncte critice;
+- organizarea raportului de prezentare.
+
+AI-ul nu a fost folosit ca sursa finala de adevar. Codul, valorile asteptate si rezultatele au fost validate prin rulare locala cu `pytest`, `pytest-cov` si `mutmut`.
 
 ## Tool AI utilizat
 
-| Tool | Scop | Data utilizarii |
+| Tool | Scop | Perioada utilizarii |
 | --- | --- | --- |
-| ChatGPT | Generare si imbunatatire teste unitare pytest | 9 mai 2026 |
+| ChatGPT | Generare idei, imbunatatire teste unitare, analiza mutanti, structurare raport | 9-23 mai 2026 |
 
-Nu au fost preluate automat rezultate fara verificare. Valorile asteptate din teste au fost recalculate manual pe baza formulei din cod, iar testele au fost rulate cu `pytest`, `pytest-cov` si `mutmut`.
+Nu au fost preluate automat rezultate fara verificare. Valorile asteptate din teste au fost recalculate pe baza formulei din specificatie, iar fiecare modificare a fost verificata prin testare automata.
 
 ## Prompt 1: cresterea acoperirii codului
 
@@ -77,19 +85,63 @@ ChatGPT a sugerat ca testele generale pot rata:
 
 Aceste idei au fost transformate in testele din `tests/test_mutation_focused_cases.py`.
 
+## Prompt 3: puncte critice si prioritizarea testelor
+
+```text
+Pentru aceeasi functie de calcul al costului de livrare, vreau o metoda simpla
+prin care sa identific automat punctele critice din cod si sa prioritizez testele.
+
+Punctele importante sunt:
+- validari de input;
+- formula de baza;
+- ramuri de decizie pentru express, same_day, premium si rural;
+- rotunjirea rezultatului final.
+
+Propune o abordare implementabila in Python, usor de explicat la prezentare.
+```
+
+## Raspuns AI sintetizat
+
+ChatGPT a sugerat o abordare bazata pe analiza statica:
+
+- parsarea codului cu `ast`;
+- detectarea validarii prin ramuri care contin `raise`;
+- detectarea formulei prin atribuiri catre `cost`;
+- detectarea deciziilor prin ramuri care modifica `cost`;
+- acordarea unui scor de risc pentru fiecare punct;
+- prioritizarea testelor in functie de termenii pe care ii acopera.
+
+Ideea a fost implementata in `src/risk_prioritizer.py` si verificata prin `tests/test_risk_prioritizer.py`. Rezultatul este generat cu:
+
+```bash
+python scripts/prioritize_tests.py
+```
+
+## Contributie AI vs validare umana
+
+| Contributie AI | Validare umana | Rezultat in proiect |
+| --- | --- | --- |
+| A propus teste pentru ramuri omise | Valorile asteptate au fost recalculate dupa formula oficiala | `tests/test_ai_improved_cases.py` |
+| A sugerat categorii de mutanti greu de prins | Testele au fost rulate cu `mutmut` | `tests/test_mutation_focused_cases.py` |
+| A sugerat analiza punctelor critice | Implementarea a fost adaptata la codul proiectului si testata | `src/risk_prioritizer.py` |
+| A ajutat la structurarea rapoartelor | Au fost pastrate doar informatiile relevante pentru cerinta | `reports/requirements_matrix.md`, `reports/manual_vs_random.md` |
+| A sugerat clarificarea rolului fiecarei suite | README-ul a fost actualizat pentru prezentare | `README.md` |
+
 ## Comparatie intre suitele de teste
 
-| Aspect | Suita manuala initiala | Suita imbunatatita cu AI | Suita finala |
-| --- | --- | --- | --- |
-| Numar teste | 3 | 13 | 25 |
-| Coverage pe `shipping_calculator.py` | 67% | 100% | 100% |
-| Teste pentru `same_day` | Nu | Da | Da |
-| Teste pentru `premium` | Nu | Da | Da |
-| Teste pentru `rural` | Nu | Da | Da |
-| Teste pentru inputuri invalide | Partial | Da | Da |
-| Teste pentru valori de frontiera | Nu | Partial | Da |
-| Teste pentru mutation testing | Nu | Partial | Da |
-| Mutanti omorati | Nu a fost scopul suitei initiale | Imbunatatire partiala | 43/43 |
+| Aspect | Suita manuala initiala | Suita imbunatatita cu AI | Suita orientata pe mutanti | Suita completa proiect |
+| --- | --- | --- | --- | --- |
+| Numar teste | 3 | 13 | 25 | 650 |
+| Coverage pe `shipping_calculator.py` | 67% | 100% | 100% | 100% |
+| Teste pentru `same_day` | Nu | Da | Da | Da |
+| Teste pentru `premium` | Nu | Da | Da | Da |
+| Teste pentru `rural` | Nu | Da | Da | Da |
+| Teste pentru inputuri invalide | Partial | Da | Da | Da |
+| Teste pentru valori de frontiera | Nu | Partial | Da | Da |
+| Teste pentru mutation testing | Nu | Partial | Da | Da |
+| Random testing | Nu | Nu | Nu | Da |
+| Oracol independent | Nu | Nu | Nu | Da |
+| Mutanti omorati | Nu a fost scopul suitei initiale | Imbunatatire partiala | 43/43 | 43/43 |
 
 ## Exemple de cazuri greu de prins manual
 
@@ -102,20 +154,30 @@ Aceste idei au fost transformate in testele din `tests/test_mutation_focused_cas
 
 ## Interpretare
 
-Folosirea ChatGPT a fost utila in doua etape:
+Folosirea ChatGPT a fost utila in trei etape:
 
-1. A extins suita initiala cu teste pentru ramuri omise, ceea ce a crescut coverage-ul de la 67% la 100%.
+1. A extins suita initiala cu teste pentru ramuri omise, ceea ce a crescut coverage-ul pe modulul testat de la 67% la 100%.
 2. A ajutat la identificarea unor categorii de mutanti greu de observat prin teste manuale simple, precum mutanti de frontiera, mutanti ai multiplicatorilor si mutanti ai rotunjirii.
+3. A contribuit la structurarea unui sistem simplu de prioritizare a testelor pe baza punctelor critice identificate in cod.
 
-Rezultatele generate de AI nu au fost acceptate direct. Fiecare test a fost verificat prin rulare, iar valorile asteptate au fost recalculate manual. In final, suita a obtinut 100% coverage pe modulul testat si 43/43 mutanti omorati.
+Rezultatele generate de AI nu au fost acceptate direct. Fiecare test a fost verificat prin rulare, valorile asteptate au fost recalculate, iar rezultatele finale au fost confirmate prin instrumente automate. In final, suita obtine 100% coverage pe modulul testat si 43/43 mutanti omorati.
 
 ## Limitari
 
-ChatGPT poate propune teste incomplete sau valori asteptate gresite daca promptul nu contine toate regulile de business. De aceea, raspunsurile au fost tratate ca sugestii, nu ca sursa finala de adevar. Validarea finala a fost facuta prin `pytest`, `pytest-cov` si `mutmut`.
+ChatGPT poate propune teste incomplete sau valori asteptate gresite daca promptul nu contine toate regulile de business. De asemenea, AI-ul nu poate confirma singur ca un mutant este echivalent sau ca un rezultat local este corect. Din acest motiv, raspunsurile AI au fost tratate ca sugestii, iar validarea finala a fost facuta prin:
+
+- `pytest`;
+- `pytest-cov`;
+- `mutmut`;
+- verificarea manuala a formulelor si a rapoartelor.
+
+## Concluzie
+
+AI-ul a fost util pentru cresterea eficientei procesului de testare, dar calitatea finala a suitei a venit din combinarea sugestiilor AI cu validare umana si instrumente automate. Aceasta corespunde temei T10: imbunatatirea testarii unitare existente prin AI, masurata prin coverage, mutation testing si prioritizare automata.
 
 ## Referinte
 
-[1] OpenAI, ChatGPT, https://chatgpt.com/, Data generarii: 9 mai 2026.  
-[2] pytest, Documentation, https://docs.pytest.org/, Data ultimei accesari: 9 mai 2026.  
-[3] Coverage.py, Documentation, https://coverage.readthedocs.io/, Data ultimei accesari: 9 mai 2026.  
-[4] Mutmut, Documentation, https://mutmut.readthedocs.io/, Data ultimei accesari: 9 mai 2026.
+[1] OpenAI, ChatGPT, https://chatgpt.com/, Data generarii: 9-23 mai 2026.  
+[2] pytest, Documentation, https://docs.pytest.org/, Data ultimei accesari: 23 mai 2026.  
+[3] Coverage.py, Documentation, https://coverage.readthedocs.io/, Data ultimei accesari: 23 mai 2026.  
+[4] Mutmut, Documentation, https://mutmut.readthedocs.io/, Data ultimei accesari: 23 mai 2026.

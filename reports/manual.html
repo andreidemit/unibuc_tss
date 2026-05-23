@@ -24,7 +24,7 @@
     <p>Aceasta etapa arata o suita de teste valida, dar incompleta. Testele verifica formula de baza, o validare si livrarea express.</p>
 
     <h2>Comanda</h2>
-    <pre><code>python -m pytest tests/test_manual_basic.py --cov=shipping_calculator --cov-report=term-missing</code></pre>
+    <pre><code>python -m pytest tests/test_manual_basic.py --cov=shipping_calculator --cov-branch --cov-report=term-missing --cov-fail-under=0</code></pre>
 
     <h2>Rezultat</h2>
     <pre><code>tests/test_manual_basic.py ...                                           [100%]
@@ -37,6 +37,63 @@ src/shipping_calculator.py      24      7     18      7    67%   28, 31, 34, 37,
 TOTAL                           24      7     18      7    67%
 
 3 passed</code></pre>
+
+    <h2>Linii neacoperite</h2>
+    <p>Raportul manual arata explicit liniile care nu sunt executate de cele 3 teste initiale. Aceste linii indica ramurile pe care suita manuala nu le verifica.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Linie</th>
+          <th>Cod neacoperit</th>
+          <th>De ce lipseste</th>
+          <th>Ce test ar acoperi linia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>28</td>
+          <td><code>raise ValueError("distance_km must be greater than 0")</code></td>
+          <td>Testele manuale verifica greutate negativa, dar nu distanta invalida.</td>
+          <td>Input cu <code>distance_km = 0</code> sau distanta negativa.</td>
+        </tr>
+        <tr>
+          <td>31</td>
+          <td><code>raise ValueError("delivery_type must be standard, express, or same_day")</code></td>
+          <td>Nu exista test manual pentru tip de livrare invalid.</td>
+          <td>Input cu <code>delivery_type = "overnight"</code>.</td>
+        </tr>
+        <tr>
+          <td>34</td>
+          <td><code>raise ValueError("customer_type must be regular or premium")</code></td>
+          <td>Nu exista test manual pentru tip de client invalid.</td>
+          <td>Input cu <code>customer_type = "gold"</code>.</td>
+        </tr>
+        <tr>
+          <td>37</td>
+          <td><code>raise ValueError("area_type must be urban or rural")</code></td>
+          <td>Nu exista test manual pentru tip de zona invalid.</td>
+          <td>Input cu <code>area_type = "remote"</code>.</td>
+        </tr>
+        <tr>
+          <td>44</td>
+          <td><code>cost *= 2</code></td>
+          <td>Testele manuale acopera <code>standard</code> si <code>express</code>, dar nu <code>same_day</code>.</td>
+          <td>Caz valid cu <code>delivery_type = "same_day"</code>.</td>
+        </tr>
+        <tr>
+          <td>47</td>
+          <td><code>cost *= 0.8</code></td>
+          <td>Nu exista test manual pentru reducerea clientului premium.</td>
+          <td>Caz valid cu <code>customer_type = "premium"</code>.</td>
+        </tr>
+        <tr>
+          <td>50</td>
+          <td><code>cost += 15</code></td>
+          <td>Nu exista test manual pentru taxa fixa de zona rurala.</td>
+          <td>Caz valid cu <code>area_type = "rural"</code>.</td>
+        </tr>
+      </tbody>
+    </table>
 
     <h2>Interpretare</h2>
     <table>

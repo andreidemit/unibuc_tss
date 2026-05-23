@@ -42,6 +42,9 @@ src/
   shipping_calculator.py   # subject under test
   oracle.py                # oracol independent pentru random testing
   risk_prioritizer.py      # identificare puncte critice si prioritizare teste
+demo/
+  index.html               # interfata HTML simpla pentru calculator
+  server.py                # server local care apeleaza functia Python reala
 tests/
   test_manual_basic.py
   test_ai_improved_cases.py
@@ -75,6 +78,28 @@ Sau:
 ```bash
 scripts/run_tests.sh
 ```
+
+## Demo HTML local
+
+Proiectul include si un wrapper HTML minimal care arata ca functia poate fi
+folosita efectiv intr-o interfata. Demo-ul nu face parte din suita de teste;
+rolul lui este doar de prezentare.
+
+Rulare:
+
+```bash
+python demo/server.py
+```
+
+Apoi deschide:
+
+```text
+http://127.0.0.1:8000
+```
+
+Formularul din `demo/index.html` trimite datele catre `demo/server.py`, iar
+serverul apeleaza functia reala `calculate_shipping_cost` din
+`src/shipping_calculator.py`.
 
 ## Rolul fisierelor din `tests/`
 
@@ -137,6 +162,30 @@ Testele white-box urmaresc ramurile din cod:
 - rotunjirea rezultatului final.
 
 Teste relevante: `tests/test_ai_improved_cases.py` si `tests/test_mutation_focused_cases.py`.
+
+## Cum au fost derivate testele structurale
+
+Testele structurale au fost scrise pornind de la codul sursa, nu doar de la
+specificatie. Pentru `calculate_shipping_cost` am identificat fiecare decizie
+din cod, apoi am ales inputuri care forteaza executia fiecarei ramuri.
+
+| Decizie / punct structural | Caz de test necesar | Fisier relevant |
+| --- | --- | --- |
+| `weight_kg <= 0` | greutate `0` sau negativa, cu asteptarea unei exceptii | `tests/test_ai_improved_cases.py`, `tests/test_mutation_focused_cases.py` |
+| `distance_km <= 0` | distanta `0` sau negativa, cu asteptarea unei exceptii | `tests/test_ai_improved_cases.py`, `tests/test_mutation_focused_cases.py` |
+| `delivery_type not in VALID_DELIVERY_TYPES` | tip de livrare invalid, de exemplu `overnight` | `tests/test_ai_improved_cases.py`, `tests/test_mutation_focused_cases.py` |
+| `customer_type not in VALID_CUSTOMER_TYPES` | tip de client invalid, de exemplu `gold` | `tests/test_ai_improved_cases.py`, `tests/test_mutation_focused_cases.py` |
+| `area_type not in VALID_AREA_TYPES` | tip de zona invalid, de exemplu `remote` | `tests/test_ai_improved_cases.py`, `tests/test_mutation_focused_cases.py` |
+| `delivery_type == "express"` | livrare `express`, cu verificarea multiplicatorului `1.5` | `tests/test_manual_basic.py`, `tests/test_mutation_focused_cases.py` |
+| `delivery_type == "same_day"` | livrare `same_day`, cu verificarea dublarii costului | `tests/test_ai_improved_cases.py`, `tests/test_mutation_focused_cases.py` |
+| `customer_type == "premium"` | client `premium`, cu verificarea reducerii de 20% | `tests/test_ai_improved_cases.py`, `tests/test_mutation_focused_cases.py` |
+| `area_type == "rural"` | zona `rural`, cu verificarea taxei fixe de 15 | `tests/test_ai_improved_cases.py`, `tests/test_mutation_focused_cases.py` |
+| `round(cost, 2)` | valori fractionare care necesita rotunjire la doua zecimale | `tests/test_mutation_focused_cases.py` |
+
+Pentru fiecare punct structural, testul verifica fie rezultatul numeric exact,
+fie exceptia asteptata. Dupa scrierea testelor, acoperirea a fost confirmata cu
+`pytest-cov` folosind optiunea `--cov-branch`, astfel incat sa fie masurate atat
+statement coverage, cat si branch coverage.
 
 ## Random testing si oracol independent
 
@@ -225,6 +274,7 @@ Mutation testing-ul este pas separat deoarece poate dura mai mult si poate fi se
 - [reports/ai_usage.html](reports/ai_usage.html)
 - [reports/final.html](reports/final.html)
 - [reports/mutation.html](reports/mutation.html)
+- [reports/mutation_focused_test_mapping.md](reports/mutation_focused_test_mapping.md)
 - [reports/priority.html](reports/priority.html)
 - [reports/requirements_matrix.md](reports/requirements_matrix.md)
 - [reports/manual_vs_random.md](reports/manual_vs_random.md)
