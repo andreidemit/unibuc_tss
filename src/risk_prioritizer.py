@@ -1,4 +1,10 @@
-"""Static risk analyzer and test prioritizer for the T10 project."""
+"""Analizor static de risc si prioritizator de teste pentru proiectul T10.
+
+Modulul acopera cerinta T10 care cere un sistem capabil sa identifice automat
+punctele critice din cod si sa prioritizeze testele in functie de acestea.
+Foloseste AST-ul Python in loc de cautare simpla in text, pentru a putea analiza
+structurat atribuiri, conditii, exceptii ridicate si expresii de return.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +16,8 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class CriticalPoint:
+    """Locatie din cod care merita acoperire de testare mai atenta."""
+
     line: int
     kind: str
     description: str
@@ -19,6 +27,8 @@ class CriticalPoint:
 
 @dataclass(frozen=True)
 class PrioritizedTest:
+    """Functie de test imbogatita cu scor de risc si puncte critice acoperite."""
+
     path: str
     name: str
     line: int
@@ -28,10 +38,12 @@ class PrioritizedTest:
 
 
 def _tokens(value: str) -> set[str]:
+    """Imparte nume si expresii in termeni normalizati folositi la potrivire."""
     return {token for token in re.split(r"[^a-zA-Z0-9_]+", value.lower()) if token}
 
 
 def _string_constants(node: ast.AST) -> set[str]:
+    """Extrage literali string dintr-un nod AST, de exemplu 'express' sau 'rural'."""
     values: set[str] = set()
     for child in ast.walk(node):
         if isinstance(child, ast.Constant) and isinstance(child.value, str):
@@ -40,10 +52,12 @@ def _string_constants(node: ast.AST) -> set[str]:
 
 
 def _has_raise(node: ast.AST) -> bool:
+    """Detecteaza daca o ramura ridica o exceptie, semn de logica de validare."""
     return any(isinstance(child, ast.Raise) for child in ast.walk(node))
 
 
 def _changes_cost(node: ast.AST) -> bool:
+    """Detecteaza daca o ramura modifica calculul costului de livrare."""
     for child in ast.walk(node):
         if isinstance(child, ast.AugAssign) and isinstance(child.target, ast.Name):
             if child.target.id == "cost":
@@ -56,11 +70,14 @@ def _changes_cost(node: ast.AST) -> bool:
 
 
 def analyze_source(source_path: Path) -> list[CriticalPoint]:
-    """Identify risky code points from the production source using AST rules."""
+    """Identifica punctele riscante din codul sursa folosind reguli bazate pe AST."""
     tree = ast.parse(source_path.read_text(encoding="utf-8"))
     points: list[CriticalPoint] = []
 
     for node in ast.walk(tree):
+        # O atribuire directa catre "cost" este tratata ca punct de tip formula.
+        # In acest proiect, formula de baza este centrala: o modificare mica aici
+        # afecteaza toate calculele valide ale costului de livrare.
         if isinstance(node, ast.Assign):
             targets = [target.id for target in node.targets if isinstance(target, ast.Name)]
             if "cost" in targets:
@@ -74,6 +91,9 @@ def analyze_source(source_path: Path) -> list[CriticalPoint]:
                     )
                 )
 
+        # Fiecare "if" poate reprezenta fie o validare de input, fie o regula
+        # de business. O ramura cu "raise" este validare; o ramura care modifica
+        # "cost" este o decizie de calcul.
         if isinstance(node, ast.If):
             condition = ast.unparse(node.test)
             condition_terms = tuple(sorted(_tokens(condition) | _string_constants(node.test)))
@@ -98,6 +118,8 @@ def analyze_source(source_path: Path) -> list[CriticalPoint]:
                     )
                 )
 
+        # Rotunjirea finala este importanta deoarece erorile de precizie pot
+        # ramane invizibile cand testele folosesc doar valori intregi.
         if isinstance(node, ast.Return):
             expression = ast.unparse(node.value) if node.value else ""
             if "round" in expression:
@@ -115,6 +137,7 @@ def analyze_source(source_path: Path) -> list[CriticalPoint]:
 
 
 def _suite_for_path(path: Path) -> str:
+    """Asociaza numele fisierului de test cu suita afisata in raport."""
     if "manual" in path.name:
         return "manual"
     if "ai" in path.name:
@@ -127,8 +150,11 @@ def _suite_for_path(path: Path) -> str:
 
 
 def collect_tests(tests_dir: Path) -> list[tuple[Path, ast.FunctionDef]]:
+    """Colecteaza functiile de test pytest din directorul de teste."""
     tests: list[tuple[Path, ast.FunctionDef]] = []
     for path in sorted(tests_dir.glob("test_*.py")):
+        # Testele prioritizatorului sunt excluse din raportul demo deoarece
+        # valideaza acest tool, nu calculatorul de costuri de livrare.
         if "prioritizer" in path.name:
             continue
         tree = ast.parse(path.read_text(encoding="utf-8"))
@@ -139,11 +165,13 @@ def collect_tests(tests_dir: Path) -> list[tuple[Path, ast.FunctionDef]]:
 
 
 def prioritize_tests(source_path: Path, tests_dir: Path) -> list[PrioritizedTest]:
-    """Rank tests by how many high-risk source points they exercise."""
+    """Ordoneaza testele dupa cate puncte riscante din sursa acopera."""
     critical_points = analyze_source(source_path)
     prioritized: list[PrioritizedTest] = []
 
     for path, test in collect_tests(tests_dir):
+        # O euristica simpla leaga testele de punctele din sursa folosind termeni
+        # din numele testului si constante string din corpul testului.
         test_terms = _tokens(test.name) | _string_constants(test)
         matched: list[CriticalPoint] = []
 
@@ -151,6 +179,9 @@ def prioritize_tests(source_path: Path, tests_dir: Path) -> list[PrioritizedTest
             if test_terms.intersection(point.terms):
                 matched.append(point)
 
+        # Scorul de baza este suma riscurilor punctelor acoperite. Suitele finale
+        # si cele imbunatatite cu AI primesc un mic bonus deoarece au fost adaugate
+        # explicit dupa analiza de coverage si mutation testing.
         score = sum(point.risk for point in matched)
         if _suite_for_path(path) == "final":
             score += 2
@@ -172,6 +203,7 @@ def prioritize_tests(source_path: Path, tests_dir: Path) -> list[PrioritizedTest
 
 
 def render_markdown(source_path: Path, tests_dir: Path) -> str:
+    """Randeaza analiza ca tabel Markdown potrivit pentru rapoarte si artefacte."""
     critical_points = analyze_source(source_path)
     prioritized = prioritize_tests(source_path, tests_dir)
 
