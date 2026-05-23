@@ -76,6 +76,20 @@ Sau:
 scripts/run_tests.sh
 ```
 
+## Rolul fisierelor din `tests/`
+
+Fiecare fisier de test are un rol separat in demonstratie. Separarea ajuta la
+explicarea evolutiei suitei: de la teste manuale simple, la teste imbunatatite
+cu IA, random testing si mutation testing.
+
+| Fisier | Motiv | Ce demonstreaza |
+| --- | --- | --- |
+| `tests/test_manual_basic.py` | Reprezinta suita manuala initiala, scrisa inainte de imbunatatirea cu IA. | Arata ca testele pot trece chiar daca acoperirea este incompleta. Este punctul de plecare pentru comparatie. |
+| `tests/test_ai_improved_cases.py` | Contine cazuri adaugate dupa analiza cu IA pentru ramuri si validari omise. | Demonstreaza cerinta T10: folosirea IA pentru cresterea acoperirii si completarea suitei existente. |
+| `tests/test_mutation_focused_cases.py` | Contine teste mai stricte, orientate spre mutanti si valori de frontiera. | Arata ca nu este suficient sa executam codul; testele trebuie sa aiba asertiuni destul de puternice ca sa detecteze modificari mici in logica. |
+| `tests/test_random.py` | Genereaza cazuri valide si invalide folosind seed fix si oracol independent. | Acopera random testing-ul cerut la laborator si compara functia testata cu `src/oracle.py`, nu cu ea insasi. |
+| `tests/test_risk_prioritizer.py` | Testeaza sistemul auxiliar care identifica puncte critice si prioritizeaza testele. | Demonstreaza partea din T10 care cere identificarea automata a zonelor critice ale codului. |
+
 ## Coverage
 
 Comanda principala folosita local si in CI:
