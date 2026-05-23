@@ -18,3 +18,4 @@ also_copy = ["src/oracle.py", "src/risk_prioritizer.py"]
 tests_dir = "tests/"
 runner = "python3 -m pytest -q"
 do_not_mutate = ["src/__init__.py"]
+use_setproctitle = false
